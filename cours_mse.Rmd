@@ -1,0 +1,83 @@
+---
+title: "Méthode MSE"
+output: html_notebook
+---
+
+Voici un exemple de jeux de données 
+```{r}
+annees <- c(1:6)
+ventes <- c(350,420,570,690,920,710)
+df <- data.frame(annees = annees,
+                 ventes = ventes)
+
+n = nrow(df)
+n
+```
+
+Ajoutons deux colonnes : $x_iy_i$ et $x_i^2$
+
+```{r}
+df$x_iy_i = annees * ventes 
+df$x_iy_i 
+df$x_i_carre = (annees)^2
+df$x_i_carre
+```
+
+Calculons $\sum_{i=1}^n x_i$,  $\sum_{i=1}^n y_i$,  $\sum_{i=1}^n x_iy_i$ et  $\sum_{i=1}^n x^2_i$
+
+```{r}
+sum_xi = sum(df$annees)
+sum_xi
+sum_yi =  sum(df$ventes)
+sum_yi
+sum_xi_yi = sum(df$x_iy_i )
+sum_xi_yi 
+sum_xi_carre = sum(df$x_i_carre)
+sum_xi_carre
+```
+
+Le coefficient directeur de la droite est $a=\frac{\sum_{i=1}^n (x_iy_i ) - n \hat{\mu}_x\hat{\mu}_y}{\sum_{i=1}^n ( x_i^2 ) - n \hat{\mu}_x^2 }$
+
+```{r}
+mean(df$annees)
+mean(df$ventes)
+
+a = (sum_xi_yi  - n * mean(df$annees) * mean(df$ventes) ) / (sum_xi_carre - n * (mean(df$annees))^2 )
+```
+
+On cherche $b$ tel que $b=\hat{\mu}_y - a \hat{\mu}_x$ 
+```{r}
+b = mean(df$ventes)- a* mean(df$annees)
+b
+```
+
+Construisons la droite
+```{r}
+my_reg <- function(x) return(a*x+b)
+```
+
+
+Affichons $y$ en fonction de $x$
+
+```{r}
+plot(df$annees,df$ventes)+
+lines(df$annees,my_reg(df$annees)  , col="blue")
+```
+
+
+On peut également utiliser la fonction lm dans R
+
+```{r}
+fit <- lm(ventes~annees, data=df)
+plot(fit)
+summary(fit)
+```
+
+
+
+
+
+
+
+
+

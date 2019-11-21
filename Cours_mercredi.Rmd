@@ -1,0 +1,160 @@
+---
+title: "A.N.O.V.A."
+output: html_notebook
+---
+
+Cours E.S.I.E.A. d'estimation à Laval. <br/>
+
+Imaginons que nous souhaitons comparer trois échantillons de taille équilibré. <p style="color:red">Nous souhaitons savoir si le comportement d'une variable quantitative à expliquer est susceptible de changer d'une catégorie à une autre.</p>
+
+```{r}
+#cas équilibrée
+ep_3_mois <- c(43,40,41)
+ep_6_mois <- c(36,40,39)
+ep_12_mois <- c(28,24,33)
+ep_24_mois <- c(32,29,32)
+
+```
+
+Pour commencer il faudra calculer la moyenne de chaque échantillon $I$ ayant $J$ observations $\hat{\mu}_I=\frac{1}{J}\sum_{j=1}^J X_{j,I}$
+```{r}
+mean_3_mois <- mean(ep_3_mois)
+mean_6_mois  <- mean(ep_6_mois)
+mean_12_mois  <- mean(ep_12_mois)
+mean_24_mois  <- mean(ep_24_mois)
+```
+
+Ensuite il faut calculer la moyenne de tout l'effectif $\hat{\mu}$
+
+```{r}
+mean_tot <- mean(c(ep_3_mois,ep_6_mois,ep_12_mois,ep_24_mois))
+mean_tot
+
+```
+
+Nous allons ensuite calculer la variance non corrigée de chaque groupe $\sigma^2_I$
+```{r}
+var_3_mois <- (sum((ep_3_mois-mean_3_mois)^2))/length(ep_3_mois)
+var_3_mois
+
+var_6_mois <- (sum((ep_6_mois-mean_6_mois)^2))/length(ep_6_mois)
+var_6_mois
+
+var_12_mois <- (sum((ep_12_mois-mean_12_mois)^2))/length(ep_12_mois)
+var_12_mois
+
+var_24_mois <- (sum((ep_24_mois-mean_24_mois)^2))/length(ep_24_mois)
+var_24_mois
+```
+
+On liste ensuite les informations suivantes  : <br/>
+* Nombre d'observations par groupe $J$ <br/>
+* Nombre de groupes $I$ <br/>
+* Nombre d'observations $n$ <br/>
+```{r}
+#nb observations par groupe 
+J=3
+#nb groupes
+I=4
+
+#nb observations
+n=I*J
+```
+
+
+Calculons la variance des écarts à la moyenne: $\frac{1}{I}\sum_{i=1}^{I}(\mu_i - \mu_T)^2$
+
+
+```{r}
+#variance mean
+var_mean <- 1/I*( (mean_3_mois-mean_tot)^2   +   (mean_6_mois-mean_tot)^2   + (mean_12_mois-mean_tot)^2  +  (mean_24_mois-mean_tot)^2    )
+var_mean
+```
+
+Calculons la variance moyenne : 
+
+```{r}
+mean_var <- 1/I*(var_3_mois+var_6_mois+var_12_mois+var_24_mois)
+mean_var
+```
+
+Calculons la variance des observations :
+
+```{r}
+var_obsevation = var_mean + mean_var
+var_obsevation
+```
+
+
+Calculons la variation totale $SC_T$ telle que $SC_T = SC_F + SC_R$ 
+
+```{r}
+# variation due au facteur (SC_f) 
+SC_f = J*( (mean_3_mois-mean_tot)^2   +   (mean_6_mois-mean_tot)^2   + (mean_12_mois-mean_tot)^2  +  (mean_24_mois-mean_tot)^2    )
+SC_f 
+# variation résiduelle
+SC_r = sum((ep_3_mois -mean_3_mois)^2) + sum((ep_6_mois -mean_6_mois)^2) + sum((ep_12_mois -mean_12_mois)^2) + sum((ep_24_mois -mean_24_mois)^2)
+SC_r
+
+# variation totale
+SC_tot = SC_f + SC_r
+SC_tot
+```
+
+
+Calculons la variance dûe aux facteurs intergroupes   $\sigma^2_F = \frac{SC_F}{I-1}$
+
+```{r}
+#variance due au facteur variance intergroupe 
+var_f = SC_f / (I-1)
+var_f
+```
+
+
+Calculons la variance corrigée des moyennes des groupes $\sigma^2_{\text{cor}I} = \frac{\sigma^2_F}{J}$
+
+```{r}
+
+var_cor =  var_f/J 
+var_cor
+```
+
+Calculons la variance résiduelle  $\sigma^2_R = \frac{SC_R}{n-I}$
+
+```{r}
+var_r = SC_r / (n-I)
+var_r
+```
+
+Si H0 vrai, $F_{OBS} = \frac{\sigma^2_F}{\sigma^2_R}$ est une réalisation aléatoire F qui suit une loi de Fisher à $I-1$ degré de liberté au numérateur et (n-I) au dénominateur. 
+[La table est disponible ici :]http://www.ilovestatistics.be/probabilite/tables-F-snedecor.html
+
+```{r}
+F_obs = var_f/var_r
+F_obs
+```
+
+On peut égalemet utiliser la fonction anvoa() sur R. 
+
+On commence par créer un dataframe :
+```{r}
+df <- data.frame(valeur=c(ep_3_mois,ep_6_mois,ep_12_mois,ep_24_mois),
+                 echantillon = c(replicate(3,"ep_3_mois"),replicate(3,"ep_6_mois"),replicate(3,"ep_12_mois"),replicate(3,"ep_24_mois")))
+
+df$echantillon <- as.factor(df$echantillon)
+```
+
+```{r}
+fit <- aov(valeur ~ echantillon, data=df) 
+summary(fit)
+plot(fit)
+```
+
+
+
+
+#Pour aller plus loin
+#https://statistique-et-logiciel-r.com/anova-a-2-facteurs-avec-r-tutoriel/
+
+
+
